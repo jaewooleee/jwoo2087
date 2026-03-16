@@ -1,69 +1,1383 @@
-<!doctype html>
-<html lang="en">
-
+<!DOCTYPE html>
+<html lang="ko" data-lang="ko">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>나만의 중고마켓</title>
-    <link rel="stylesheet" href="https://s3.ap-northeast-2.amazonaws.com/materials.spartacodingclub.kr/easygpt/default.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
-        crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suno AI Prompt Master Agent</title>
     <style>
-        /* 꾸미기 */
-        .card:hover {
-  transform: scale(1.1);
-  transition: transform 0.5s ease;
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #12122a;
+            --bg-card: #1a1a35;
+            --bg-input: #0d0d20;
+            --accent: #e040fb;
+            --accent2: #7c4dff;
+            --accent-gradient: linear-gradient(135deg, #e040fb, #7c4dff);
+            --text-primary: #f0f0f0;
+            --text-secondary: #8888aa;
+            --text-muted: #555577;
+            --border: #2a2a4a;
+            --chip-bg: #1e1e3a;
+            --chip-hover: #2a2a50;
+            --chip-active: #3a2a60;
+            --success: #00e676;
+            --warning: #ffab40;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px;
+            background: linear-gradient(180deg, rgba(224,64,251,0.15) 0%, transparent 100%);
+            position: relative;
+        }
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        /* Language Selector */
+        .lang-selector {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            gap: 5px;
+        }
+        .lang-btn {
+            background: var(--chip-bg);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .lang-btn.active, .lang-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* API Section */
+        .api-section {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .api-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: var(--bg-secondary);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .api-bar input {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .api-bar input:focus { outline: none; border-color: var(--accent); }
+        .api-bar .save-btn {
+            background: var(--accent-gradient);
+            border: none;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+        .api-bar .save-btn:hover { opacity: 0.85; }
+        .api-status {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+
+        /* Tabs */
+        .tabs {
+            max-width: 900px;
+            margin: 25px auto 0;
+            padding: 0 20px;
+            display: flex;
+            gap: 0;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .tab-btn:first-child { border-radius: 12px 0 0 12px; }
+        .tab-btn:last-child { border-radius: 0 12px 12px 0; }
+        .tab-btn.active {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+            color: var(--text-primary);
+            box-shadow: 0 0 15px rgba(224,64,251,0.2);
+        }
+
+        /* Main Container */
+        .main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Section */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .section-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-num {
+            background: var(--accent-gradient);
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        /* Chips */
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .chip {
+            background: var(--chip-bg);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .chip:hover { background: var(--chip-hover); border-color: #444466; }
+        .chip.selected {
+            background: var(--chip-active);
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(224,64,251,0.25);
+        }
+        .chip .emoji { margin-right: 4px; }
+
+        /* Custom Input */
+        .custom-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-top: 4px;
+        }
+        .custom-input:focus { outline: none; border-color: var(--accent2); }
+        .custom-input::placeholder { color: var(--text-muted); }
+
+        textarea.custom-input {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Preview Panel */
+        .preview-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--accent2);
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .preview-panel h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+        .preview-content {
+            background: var(--bg-input);
+            border-radius: 10px;
+            padding: 18px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.88rem;
+            line-height: 1.8;
+            color: #ddd;
+            white-space: pre-wrap;
+            min-height: 80px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .preview-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .copy-btn, .save-prompt-btn {
+            background: var(--chip-bg);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover, .save-prompt-btn:hover {
+            background: var(--chip-hover);
+            border-color: var(--accent);
+        }
+
+        /* Generate Button */
+        .generate-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .generate-btn {
+            background: linear-gradient(135deg, #e040fb 0%, #ff4081 50%, #7c4dff 100%);
+            border: none;
+            color: #fff;
+            padding: 18px 50px;
+            border-radius: 14px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(224,64,251,0.3);
+            letter-spacing: 1px;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(224,64,251,0.5);
+        }
+        .generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .generate-btn .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* History Panel */
+        .history-tab { display: none; }
+        .history-tab.active { display: block; }
+        .music-tab { display: none; }
+        .music-tab.active { display: block; }
+
+        .history-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+        .history-item:hover { border-color: var(--accent2); }
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .history-date {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+        .history-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .history-tag {
+            background: var(--chip-bg);
+            color: var(--accent);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+        .history-prompt {
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            color: #ccc;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .history-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .history-btn {
+            background: var(--chip-bg);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 5px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .history-btn:hover { color: var(--text-primary); border-color: var(--accent); }
+        .history-btn.delete:hover { border-color: #ff4444; color: #ff4444; }
+
+        .empty-history {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        /* Result modal */
+        .result-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .result-overlay.show { display: flex; }
+        .result-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .result-box h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .result-prompt-item {
+            background: var(--bg-input);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--accent);
+        }
+        .result-prompt-item h4 {
+            color: var(--accent2);
+            margin-bottom: 8px;
+        }
+        .result-prompt-item pre {
+            white-space: pre-wrap;
+            font-size: 0.88rem;
+            color: #ddd;
+            line-height: 1.7;
+        }
+        .result-close {
+            display: block;
+            margin: 20px auto 0;
+            background: var(--accent-gradient);
+            border: none;
+            color: #fff;
+            padding: 12px 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-card);
+            border: 1px solid var(--accent);
+            color: var(--text-primary);
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            z-index: 2000;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.8rem; }
+            .lang-selector { position: static; justify-content: center; margin-bottom: 10px; padding-top: 10px; }
+            .header { padding-top: 10px; }
+            .tabs { flex-wrap: wrap; }
+            .tab-btn { border-radius: 8px !important; }
+            .chip { font-size: 0.82rem; padding: 7px 12px; }
+        }
     </style>
 </head>
-
 <body>
-    <div class="hero bg-dark text-center py-5 mb-5">
-        <h1 class="text-white">나만의 르탄마켓</h1>
-        <h2 class="text-white">집에 있는 물건을 팝니다!</h2>
-    </div>
-    <div class="container">
-        <div class="row">
-          <div class="col-md-4 mb-4">
-            <div class="card">
-              <img src="https://source.unsplash.com/1600x900/?rice-cooker" class="card-img-top" alt="전기밥솥">
-              <div class="card-body">
-                <h5 class="card-title">전기밥솥</h5>
-                <h6 class="card-subtitle mb-2 text-muted">5만원</h6>
-                <p class="card-text">한 번 밖에 안쓴 전기밥솥 팝니다. 부모님이 독립 할 때 주신 거에요!</p>
-                <a href="https://spartacodingclub.kr/" class="card-link stretched-link" target="_blank"></a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4 mb-4">
-            <div class="card">
-              <img src="https://source.unsplash.com/1600x900/?chair" class="card-img-top" alt="의자">
-              <div class="card-body">
-                <h5 class="card-title">의자</h5>
-                <h6 class="card-subtitle mb-2 text-muted">1만원</h6>
-                <p class="card-text">사무실에서 사용한 의자 팝니다. 조절 가능한 팔걸이가 달려있어요.</p>
-                <a href="https://spartacodingclub.kr/" class="card-link stretched-link" target="_blank"></a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4 mb-4">
-            <div class="card">
-              <img src="https://source.unsplash.com/1600x900/?laptop" class="card-img-top" alt="노트북">
-              <div class="card-body">
-                <h5 class="card-title">노트북</h5>
-                <h6 class="card-subtitle mb-2 text-muted">30만원</h6>
-                <p class="card-text">삼성 노트북 판매합니다. 사용기간은 1년 정도이며, 상태는 깨끗합니다.</p>
-                <a href="https://spartacodingclub.kr/" class="card-link stretched-link" target="_blank"></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-</body>
 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Result Overlay -->
+<div class="result-overlay" id="resultOverlay">
+    <div class="result-box">
+        <h2 id="resultTitle">Generated Prompts</h2>
+        <div id="resultContent"></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
+            <button class="result-close" onclick="copyAllResults()" style="background:var(--chip-bg);border:1px solid var(--border);">📋 <span data-i18n="copyAll">전체 복사</span></button>
+            <button class="result-close" onclick="saveAllResults()">💾 <span data-i18n="saveAll">전체 저장</span></button>
+            <button class="result-close" onclick="closeResult()">✕ <span data-i18n="close">닫기</span></button>
+        </div>
+    </div>
+</div>
+
+<!-- Header -->
+<header class="header">
+    <div class="lang-selector">
+        <button class="lang-btn active" onclick="setLang('ko')">🇰🇷 한국어</button>
+        <button class="lang-btn" onclick="setLang('en')">🇺🇸 English</button>
+        <button class="lang-btn" onclick="setLang('ja')">🇯🇵 日本語</button>
+        <button class="lang-btn" onclick="setLang('zh')">🇨🇳 中文</button>
+        <button class="lang-btn" onclick="setLang('es')">🇪🇸 Español</button>
+    </div>
+    <h1>SUNO AI PROMPT MASTER</h1>
+    <p class="subtitle" data-i18n="subtitle">AI Music Prompt Generator Agent</p>
+</header>
+
+<!-- API Key -->
+<div class="api-section">
+    <div class="api-bar">
+        <input type="password" id="apiKey" placeholder="Google Gemini API Key" />
+        <button class="save-btn" onclick="saveApiKey()"><span data-i18n="save">저장</span></button>
+    </div>
+    <p class="api-status" id="apiStatus"></p>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('music')" data-tab="music">
+        🎵 <span data-i18n="tabMusic">음악 생성</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('history')" data-tab="history">
+        📋 <span data-i18n="tabHistory">프롬프트 히스토리</span>
+    </button>
+</div>
+
+<!-- Music Generation Tab -->
+<div class="main music-tab active" id="musicTab">
+
+    <!-- 1. Genre -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">1</span> <span data-i18n="genreTitle">장르 선택</span></div>
+        <div class="chips" id="genreChips"></div>
+        <input class="custom-input" id="genreCustom" data-i18n-ph="genreCustomPh" placeholder="원하는 장르를 직접 입력하세요" />
+    </div>
+
+    <!-- 2. Sub-genre/Style -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">2</span> <span data-i18n="subgenreTitle">서브장르 & 스타일</span></div>
+        <div class="chips" id="subgenreChips"></div>
+        <input class="custom-input" id="subgenreCustom" data-i18n-ph="subgenreCustomPh" placeholder="원하는 서브장르를 직접 입력하세요" />
+    </div>
+
+    <!-- 3. Mood -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">3</span> <span data-i18n="moodTitle">분위기 및 감성 선택</span></div>
+        <div class="chips" id="moodChips"></div>
+        <input class="custom-input" id="moodCustom" data-i18n-ph="moodCustomPh" placeholder="원하는 분위기를 직접 입력하세요" />
+    </div>
+
+    <!-- 4. Vocal -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">4</span> <span data-i18n="vocalTitle">보컬 및 창법 선택</span></div>
+        <div class="chips" id="vocalChips"></div>
+        <input class="custom-input" id="vocalCustom" data-i18n-ph="vocalCustomPh" placeholder="원하는 보컬 스타일을 직접 입력하세요" />
+    </div>
+
+    <!-- 5. Usage -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">5</span> <span data-i18n="usageTitle">사용 용도 및 상황</span></div>
+        <div class="chips" id="usageChips"></div>
+        <input class="custom-input" id="usageCustom" data-i18n-ph="usageCustomPh" placeholder="사용 용도를 직접 입력하세요" />
+    </div>
+
+    <!-- 6. Instruments -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">6</span> <span data-i18n="instrumentTitle">주요 악기 설정</span></div>
+        <div class="chips" id="instrumentChips"></div>
+        <input class="custom-input" id="instrumentCustom" data-i18n-ph="instrumentCustomPh" placeholder="원하는 악기를 직접 입력하세요" />
+    </div>
+
+    <!-- 7. BPM -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">7</span> <span data-i18n="bpmTitle">속도 (BPM) 설정</span></div>
+        <div class="chips" id="bpmChips"></div>
+        <input class="custom-input" id="bpmCustom" data-i18n-ph="bpmCustomPh" placeholder="원하는 BPM을 직접 입력하세요" />
+    </div>
+
+    <!-- 8. Song Structure -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">8</span> <span data-i18n="structureTitle">곡 구조 설정</span></div>
+        <div class="chips" id="structureChips"></div>
+        <input class="custom-input" id="structureCustom" data-i18n-ph="structureCustomPh" placeholder="원하는 곡 구조를 직접 입력하세요" />
+    </div>
+
+    <!-- 9. Target Age -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">9</span> <span data-i18n="ageTitle">타겟 연령대 선택</span></div>
+        <div class="chips" id="ageChips"></div>
+        <input class="custom-input" id="ageCustom" data-i18n-ph="ageCustomPh" placeholder="타겟 연령대를 직접 입력하세요" />
+    </div>
+
+    <!-- 10. Lyrics Language -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">10</span> <span data-i18n="lyricsLangTitle">가사 언어 설정</span></div>
+        <div class="chips" id="lyricsLangChips"></div>
+        <input class="custom-input" id="lyricsLangCustom" data-i18n-ph="lyricsLangCustomPh" placeholder="원하는 언어를 직접 입력하세요" />
+    </div>
+
+    <!-- 11. Lyrics Theme -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">11</span> <span data-i18n="themeTitle">가사 주제 및 요청</span></div>
+        <div class="chips" id="themeChips"></div>
+        <textarea class="custom-input" id="themeCustom" data-i18n-ph="themeCustomPh" placeholder="가사 주제를 자유롭게 적어주세요. 구체적일수록 좋은 프롬프트가 생성됩니다."></textarea>
+    </div>
+
+    <!-- 12. Reference -->
+    <div class="section">
+        <div class="section-title"><span class="section-num">12</span> <span data-i18n="refTitle">레퍼런스 아티스트/곡</span></div>
+        <input class="custom-input" id="refCustom" data-i18n-ph="refCustomPh" placeholder="참고할 아티스트나 곡을 입력하세요 (예: BTS, Adele, 비틀즈)" />
+    </div>
+
+    <!-- Real-time Preview -->
+    <div class="preview-panel">
+        <h3>🔮 <span data-i18n="previewTitle">실시간 프롬프트 미리보기</span></h3>
+        <div class="preview-content" id="previewContent" data-i18n="previewEmpty">옵션을 선택하면 여기에 프롬프트 미리보기가 표시됩니다...</div>
+        <div class="preview-actions">
+            <button class="copy-btn" onclick="copyPreview()">📋 <span data-i18n="copy">복사</span></button>
+            <button class="save-prompt-btn" onclick="saveCurrentPreview()">💾 <span data-i18n="savePrompt">프롬프트 저장</span></button>
+        </div>
+    </div>
+
+    <!-- Generate -->
+    <div class="generate-section">
+        <button class="generate-btn" id="generateBtn" onclick="generatePrompts()">
+            🎵 <span data-i18n="generateBtn">AI로 고품질 프롬프트 생성하기</span>
+        </button>
+        <p style="color:var(--text-muted);font-size:0.8rem;margin-top:10px;" data-i18n="generateNote">
+            Gemini AI가 선택한 옵션을 기반으로 Suno에 최적화된 프롬프트를 생성합니다
+        </p>
+    </div>
+</div>
+
+<!-- History Tab -->
+<div class="main history-tab" id="historyTab">
+    <div class="section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+            <h3 data-i18n="historyTitle">저장된 프롬프트</h3>
+            <button class="history-btn delete" onclick="clearHistory()" data-i18n="clearAll">전체 삭제</button>
+        </div>
+        <div id="historyList"></div>
+    </div>
+</div>
+
+<script>
+// =========== i18n ===========
+const I18N = {
+    ko: {
+        subtitle: "AI 음악 프롬프트 생성 에이전트",
+        save: "저장", tabMusic: "음악 생성", tabHistory: "프롬프트 히스토리",
+        genreTitle: "장르 선택", subgenreTitle: "서브장르 & 스타일",
+        moodTitle: "분위기 및 감성 선택", vocalTitle: "보컬 및 창법 선택",
+        usageTitle: "사용 용도 및 상황", instrumentTitle: "주요 악기 설정",
+        bpmTitle: "속도 (BPM) 설정", structureTitle: "곡 구조 설정",
+        ageTitle: "타겟 연령대 선택", lyricsLangTitle: "가사 언어 설정",
+        themeTitle: "가사 주제 및 요청", refTitle: "레퍼런스 아티스트/곡",
+        previewTitle: "실시간 프롬프트 미리보기",
+        previewEmpty: "옵션을 선택하면 여기에 프롬프트 미리보기가 표시됩니다...",
+        copy: "복사", copyAll: "전체 복사", saveAll: "전체 저장", savePrompt: "프롬프트 저장", close: "닫기",
+        generateBtn: "AI로 고품질 프롬프트 생성하기",
+        generateNote: "Gemini AI가 선택한 옵션을 기반으로 Suno에 최적화된 프롬프트를 생성합니다",
+        historyTitle: "저장된 프롬프트", clearAll: "전체 삭제",
+        genreCustomPh: "원하는 장르를 직접 입력하세요",
+        subgenreCustomPh: "원하는 서브장르를 직접 입력하세요",
+        moodCustomPh: "원하는 분위기를 직접 입력하세요",
+        vocalCustomPh: "원하는 보컬 스타일을 직접 입력하세요",
+        usageCustomPh: "사용 용도를 직접 입력하세요",
+        instrumentCustomPh: "원하는 악기를 직접 입력하세요",
+        bpmCustomPh: "원하는 BPM을 직접 입력하세요",
+        structureCustomPh: "원하는 곡 구조를 직접 입력하세요",
+        ageCustomPh: "타겟 연령대를 직접 입력하세요",
+        lyricsLangCustomPh: "원하는 언어를 직접 입력하세요",
+        themeCustomPh: "가사 주제를 자유롭게 적어주세요. 구체적일수록 좋은 프롬프트가 생성됩니다.",
+        refCustomPh: "참고할 아티스트나 곡을 입력하세요 (예: BTS, Adele, 비틀즈)",
+        apiSaved: "✅ API Key 저장 완료 - AI 기능 활성화됨",
+        copied: "클립보드에 복사되었습니다!",
+        saved: "프롬프트가 저장되었습니다!",
+        noApiKey: "API Key를 먼저 입력해주세요",
+        generating: "생성 중...",
+        resultTitle: "🎵 생성된 Suno AI 프롬프트",
+        emptyHistory: "저장된 프롬프트가 없습니다. 음악 생성 탭에서 프롬프트를 만들어보세요!",
+        confirmClear: "모든 히스토리를 삭제하시겠습니까?",
+        allSaved: "모든 프롬프트가 저장되었습니다!",
+    },
+    en: {
+        subtitle: "AI Music Prompt Generator Agent",
+        save: "Save", tabMusic: "Music Generation", tabHistory: "Prompt History",
+        genreTitle: "Genre Selection", subgenreTitle: "Sub-genre & Style",
+        moodTitle: "Mood & Emotion", vocalTitle: "Vocal & Singing Style",
+        usageTitle: "Usage & Situation", instrumentTitle: "Main Instruments",
+        bpmTitle: "Tempo (BPM)", structureTitle: "Song Structure",
+        ageTitle: "Target Age Group", lyricsLangTitle: "Lyrics Language",
+        themeTitle: "Lyrics Theme & Request", refTitle: "Reference Artist/Song",
+        previewTitle: "Real-time Prompt Preview",
+        previewEmpty: "Select options to see the prompt preview here...",
+        copy: "Copy", copyAll: "Copy All", saveAll: "Save All", savePrompt: "Save Prompt", close: "Close",
+        generateBtn: "Generate High-Quality Prompts with AI",
+        generateNote: "Gemini AI generates Suno-optimized prompts based on your selections",
+        historyTitle: "Saved Prompts", clearAll: "Clear All",
+        genreCustomPh: "Enter your desired genre",
+        subgenreCustomPh: "Enter your desired sub-genre",
+        moodCustomPh: "Enter your desired mood",
+        vocalCustomPh: "Enter your desired vocal style",
+        usageCustomPh: "Enter your usage scenario",
+        instrumentCustomPh: "Enter your desired instruments",
+        bpmCustomPh: "Enter your desired BPM",
+        structureCustomPh: "Enter your desired song structure",
+        ageCustomPh: "Enter your target age group",
+        lyricsLangCustomPh: "Enter your desired language",
+        themeCustomPh: "Describe the lyrics theme freely. The more specific, the better the prompt.",
+        refCustomPh: "Enter reference artists or songs (e.g. BTS, Adele, Beatles)",
+        apiSaved: "✅ API Key saved - AI features enabled",
+        copied: "Copied to clipboard!",
+        saved: "Prompt saved!",
+        noApiKey: "Please enter your API Key first",
+        generating: "Generating...",
+        resultTitle: "🎵 Generated Suno AI Prompts",
+        emptyHistory: "No saved prompts yet. Create some in the Music Generation tab!",
+        confirmClear: "Delete all history?",
+        allSaved: "All prompts saved!",
+    },
+    ja: {
+        subtitle: "AI音楽プロンプト生成エージェント",
+        save: "保存", tabMusic: "音楽生成", tabHistory: "プロンプト履歴",
+        genreTitle: "ジャンル選択", subgenreTitle: "サブジャンル＆スタイル",
+        moodTitle: "ムード＆感情", vocalTitle: "ボーカル＆歌唱スタイル",
+        usageTitle: "用途＆シチュエーション", instrumentTitle: "メイン楽器設定",
+        bpmTitle: "テンポ (BPM) 設定", structureTitle: "曲構成設定",
+        ageTitle: "ターゲット年齢層", lyricsLangTitle: "歌詞言語設定",
+        themeTitle: "歌詞テーマ＆リクエスト", refTitle: "リファレンスアーティスト/曲",
+        previewTitle: "リアルタイムプロンプトプレビュー",
+        previewEmpty: "オプションを選択するとプロンプトプレビューが表示されます...",
+        copy: "コピー", copyAll: "全てコピー", saveAll: "全て保存", savePrompt: "プロンプト保存", close: "閉じる",
+        generateBtn: "AIで高品質プロンプトを生成",
+        generateNote: "Gemini AIが選択に基づいてSuno最適化プロンプトを生成します",
+        historyTitle: "保存済みプロンプト", clearAll: "全削除",
+        genreCustomPh: "希望のジャンルを入力",
+        subgenreCustomPh: "希望のサブジャンルを入力",
+        moodCustomPh: "希望のムードを入力",
+        vocalCustomPh: "希望のボーカルスタイルを入力",
+        usageCustomPh: "使用用途を入力",
+        instrumentCustomPh: "希望の楽器を入力",
+        bpmCustomPh: "希望のBPMを入力",
+        structureCustomPh: "希望の曲構成を入力",
+        ageCustomPh: "ターゲット年齢層を入力",
+        lyricsLangCustomPh: "希望の言語を入力",
+        themeCustomPh: "歌詞テーマを自由に記述してください。具体的なほど良いプロンプトが生成されます。",
+        refCustomPh: "参考アーティストや曲を入力 (例: BTS, Adele, ビートルズ)",
+        apiSaved: "✅ APIキー保存完了 - AI機能有効",
+        copied: "クリップボードにコピーしました！",
+        saved: "プロンプトが保存されました！",
+        noApiKey: "先にAPIキーを入力してください",
+        generating: "生成中...",
+        resultTitle: "🎵 生成されたSuno AIプロンプト",
+        emptyHistory: "保存済みプロンプトがありません。音楽生成タブでプロンプトを作成してください！",
+        confirmClear: "全履歴を削除しますか？",
+        allSaved: "全プロンプトが保存されました！",
+    },
+    zh: {
+        subtitle: "AI音乐提示词生成代理",
+        save: "保存", tabMusic: "音乐生成", tabHistory: "提示词历史",
+        genreTitle: "流派选择", subgenreTitle: "子流派和风格",
+        moodTitle: "氛围与情感", vocalTitle: "人声与唱法",
+        usageTitle: "使用场景", instrumentTitle: "主要乐器设置",
+        bpmTitle: "速度 (BPM) 设置", structureTitle: "曲目结构设置",
+        ageTitle: "目标年龄群", lyricsLangTitle: "歌词语言设置",
+        themeTitle: "歌词主题与要求", refTitle: "参考艺术家/歌曲",
+        previewTitle: "实时提示词预览",
+        previewEmpty: "选择选项后，提示词预览将在此显示...",
+        copy: "复制", copyAll: "全部复制", saveAll: "全部保存", savePrompt: "保存提示词", close: "关闭",
+        generateBtn: "AI生成高品质提示词",
+        generateNote: "Gemini AI根据您的选择生成Suno优化提示词",
+        historyTitle: "已保存提示词", clearAll: "全部删除",
+        genreCustomPh: "输入您想要的流派",
+        subgenreCustomPh: "输入您想要的子流派",
+        moodCustomPh: "输入您想要的氛围",
+        vocalCustomPh: "输入您想要的人声风格",
+        usageCustomPh: "输入使用场景",
+        instrumentCustomPh: "输入您想要的乐器",
+        bpmCustomPh: "输入您想要的BPM",
+        structureCustomPh: "输入您想要的曲目结构",
+        ageCustomPh: "输入目标年龄群",
+        lyricsLangCustomPh: "输入您想要的语言",
+        themeCustomPh: "自由描述歌词主题。越具体，生成的提示词越好。",
+        refCustomPh: "输入参考艺术家或歌曲 (例: BTS, Adele, 披头士)",
+        apiSaved: "✅ API Key已保存 - AI功能已启用",
+        copied: "已复制到剪贴板！",
+        saved: "提示词已保存！",
+        noApiKey: "请先输入API Key",
+        generating: "生成中...",
+        resultTitle: "🎵 生成的Suno AI提示词",
+        emptyHistory: "暂无保存的提示词。请在音乐生成标签页创建提示词！",
+        confirmClear: "确定删除所有历史记录？",
+        allSaved: "所有提示词已保存！",
+    },
+    es: {
+        subtitle: "Agente Generador de Prompts de Música IA",
+        save: "Guardar", tabMusic: "Generar Música", tabHistory: "Historial de Prompts",
+        genreTitle: "Selección de Género", subgenreTitle: "Subgénero y Estilo",
+        moodTitle: "Ambiente y Emoción", vocalTitle: "Vocal y Estilo de Canto",
+        usageTitle: "Uso y Situación", instrumentTitle: "Instrumentos Principales",
+        bpmTitle: "Tempo (BPM)", structureTitle: "Estructura de la Canción",
+        ageTitle: "Grupo de Edad Objetivo", lyricsLangTitle: "Idioma de la Letra",
+        themeTitle: "Tema y Solicitud de Letra", refTitle: "Artista/Canción de Referencia",
+        previewTitle: "Vista Previa del Prompt en Tiempo Real",
+        previewEmpty: "Seleccione opciones para ver la vista previa del prompt aquí...",
+        copy: "Copiar", copyAll: "Copiar Todo", saveAll: "Guardar Todo", savePrompt: "Guardar Prompt", close: "Cerrar",
+        generateBtn: "Generar Prompts de Alta Calidad con IA",
+        generateNote: "Gemini AI genera prompts optimizados para Suno basados en sus selecciones",
+        historyTitle: "Prompts Guardados", clearAll: "Eliminar Todo",
+        genreCustomPh: "Ingrese el género deseado",
+        subgenreCustomPh: "Ingrese el subgénero deseado",
+        moodCustomPh: "Ingrese el ambiente deseado",
+        vocalCustomPh: "Ingrese el estilo vocal deseado",
+        usageCustomPh: "Ingrese el escenario de uso",
+        instrumentCustomPh: "Ingrese los instrumentos deseados",
+        bpmCustomPh: "Ingrese el BPM deseado",
+        structureCustomPh: "Ingrese la estructura deseada",
+        ageCustomPh: "Ingrese el grupo de edad objetivo",
+        lyricsLangCustomPh: "Ingrese el idioma deseado",
+        themeCustomPh: "Describe libremente el tema de la letra. Cuanto más específico, mejor será el prompt.",
+        refCustomPh: "Ingrese artistas o canciones de referencia (ej: BTS, Adele, Beatles)",
+        apiSaved: "✅ API Key guardada - funciones IA activadas",
+        copied: "¡Copiado al portapapeles!",
+        saved: "¡Prompt guardado!",
+        noApiKey: "Por favor, ingrese su API Key primero",
+        generating: "Generando...",
+        resultTitle: "🎵 Prompts Generados para Suno AI",
+        emptyHistory: "No hay prompts guardados. ¡Cree algunos en la pestaña de Generación de Música!",
+        confirmClear: "¿Eliminar todo el historial?",
+        allSaved: "¡Todos los prompts guardados!",
+    }
+};
+
+let currentLang = 'ko';
+
+function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N['ko'][key] || key; }
+
+function setLang(lang) {
+    currentLang = lang;
+    document.documentElement.setAttribute('data-lang', lang);
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.includes({ko:'한국어',en:'English',ja:'日本語',zh:'中文',es:'Español'}[lang])));
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+    renderHistory();
+    updatePreview();
+    localStorage.setItem('suno_lang', lang);
+}
+
+// =========== Chip Data ===========
+const DATA = {
+    genre: [
+        {emoji:"🏙️", en:"City Pop", ko:"시티팝(City Pop)"},
+        {emoji:"🎧", en:"Lo-fi", ko:"로파이(Lo-fi)"},
+        {emoji:"🌊", en:"Chillwave", ko:"칠웨이브"},
+        {emoji:"🎸", en:"K-Rock", ko:"K-록"},
+        {emoji:"🎤", en:"K-pop", ko:"K-pop"},
+        {emoji:"🎵", en:"Choir/Ensemble", ko:"합창/중창"},
+        {emoji:"🧘", en:"Meditation/Healing", ko:"명상/치유"},
+        {emoji:"✝️", en:"CCM/Worship", ko:"CCM/찬양"},
+        {emoji:"❤️", en:"Ballad", ko:"발라드"},
+        {emoji:"🎷", en:"Jazz", ko:"재즈"},
+        {emoji:"🎹", en:"Pop", ko:"팝"},
+        {emoji:"🎤", en:"Hip-hop", ko:"힙합"},
+        {emoji:"🌌", en:"New Age", ko:"뉴에이지"},
+        {emoji:"🔊", en:"Ambient", ko:"앰비언트"},
+        {emoji:"💃", en:"Trot", ko:"트로트"},
+        {emoji:"🎸", en:"Blues", ko:"블루스"},
+        {emoji:"🤠", en:"Country", ko:"컨트리"},
+        {emoji:"🎻", en:"Folk", ko:"포크"},
+        {emoji:"🌴", en:"Reggae", ko:"레게"},
+        {emoji:"✨", en:"Disco", ko:"디스코"},
+        {emoji:"🎸", en:"Rock", ko:"록"},
+        {emoji:"🔌", en:"Electronic", ko:"전자음악"},
+        {emoji:"🎶", en:"R&B", ko:"R&B"},
+        {emoji:"🎵", en:"Soul", ko:"소울"},
+        {emoji:"📱", en:"Synth Pop", ko:"신스팝"},
+        {emoji:"☁️", en:"Dream Pop", ko:"드림 팝"},
+        {emoji:"🌿", en:"Indie Pop", ko:"인디팝"},
+        {emoji:"🙏", en:"Gospel", ko:"가스펠"},
+        {emoji:"🎷", en:"Swing", ko:"스윙"},
+        {emoji:"💃", en:"Latin", ko:"라틴"},
+        {emoji:"🎧", en:"Easy Listening", ko:"이지리스닝"},
+        {emoji:"🌙", en:"Lullaby", ko:"자장가"},
+        {emoji:"👶", en:"Children's Song", ko:"동요"},
+        {emoji:"🎄", en:"Carol", ko:"캐롤"},
+        {emoji:"🤘", en:"Metal", ko:"메탈"},
+        {emoji:"🎺", en:"Funk", ko:"펑크"},
+        {emoji:"🎬", en:"Cinematic/OST", ko:"시네마틱/OST"},
+        {emoji:"🕹️", en:"8-bit/Chiptune", ko:"8비트/칩튠"},
+    ],
+    subgenre: [
+        {emoji:"🌃", en:"Synthwave", ko:"신스웨이브"},
+        {emoji:"🌆", en:"Vaporwave", ko:"베이퍼웨이브"},
+        {emoji:"🎹", en:"Future Bass", ko:"퓨처 베이스"},
+        {emoji:"🔥", en:"Trap", ko:"트랩"},
+        {emoji:"🌊", en:"Phonk", ko:"퐁크"},
+        {emoji:"💫", en:"Hyperpop", ko:"하이퍼팝"},
+        {emoji:"🌙", en:"Bedroom Pop", ko:"베드룸 팝"},
+        {emoji:"🎸", en:"Post-Rock", ko:"포스트록"},
+        {emoji:"🎻", en:"Neo-Classical", ko:"네오클래식"},
+        {emoji:"🏖️", en:"Tropical House", ko:"트로피컬 하우스"},
+        {emoji:"🌌", en:"Downtempo", ko:"다운템포"},
+        {emoji:"🔊", en:"Dubstep", ko:"덥스텝"},
+        {emoji:"🎵", en:"Progressive", ko:"프로그레시브"},
+        {emoji:"💎", en:"Afrobeat", ko:"아프로비트"},
+        {emoji:"🎤", en:"Boom Bap", ko:"붐뱁"},
+        {emoji:"🌸", en:"J-pop Style", ko:"J-pop 스타일"},
+        {emoji:"🎭", en:"Musical Style", ko:"뮤지컬 스타일"},
+        {emoji:"🏔️", en:"Celtic", ko:"켈틱"},
+    ],
+    mood: [
+        {emoji:"🌙", en:"Calm (Serene)", ko:"잔잔한 (고요한)"},
+        {emoji:"😢", en:"Deep Sorrow", ko:"깊은 슬픔"},
+        {emoji:"🌧️", en:"Melancholy Dawn", ko:"우울한 새벽"},
+        {emoji:"🙏", en:"Sacred Grace", ko:"경건하고 은혜로운"},
+        {emoji:"🤗", en:"Warm Comfort", ko:"따스한 위로"},
+        {emoji:"😊", en:"Pure Peace", ko:"순수한 평화"},
+        {emoji:"☁️", en:"Cozy Cloud", ko:"포근한 구름"},
+        {emoji:"⚡", en:"Energy Burst", ko:"에너지 폭발"},
+        {emoji:"💕", en:"Romantic", ko:"로맨틱 감성"},
+        {emoji:"🌅", en:"Sunset-like", ko:"일몰같은"},
+        {emoji:"🪐", en:"Space-like", ko:"우주 같은"},
+        {emoji:"💜", en:"Dark & Intense", ko:"다크하고 강렬"},
+        {emoji:"🍃", en:"Cool Breeze", ko:"시원한 바람"},
+        {emoji:"🏎️", en:"Powerful Drive", ko:"강력한 드라이브"},
+        {emoji:"💪", en:"Challenging", ko:"도전적인"},
+        {emoji:"🏔️", en:"Grand Epic", ko:"웅장한 대서사시"},
+        {emoji:"🐻", en:"Cute", ko:"귀여운"},
+        {emoji:"🎉", en:"Joyful Party", ko:"즐거운 파티"},
+        {emoji:"🔥", en:"Passionate", ko:"열정적인"},
+        {emoji:"🌻", en:"Hopeful", ko:"희망찬"},
+        {emoji:"😤", en:"Angry/Intense", ko:"분노/격한"},
+        {emoji:"🎭", en:"Mysterious", ko:"미스터리한"},
+        {emoji:"🏄", en:"Refreshing", ko:"상쾌한"},
+    ],
+    vocal: [
+        {emoji:"👧", en:"Children's Choir", ko:"어린이 합창단"},
+        {emoji:"👨‍🎤", en:"Adult Choir", ko:"어른 합창단"},
+        {emoji:"😇", en:"Clear Female Vocal", ko:"맑고 깨끗한 여성 보컬"},
+        {emoji:"✨", en:"Ethereal Female", ko:"에테리얼 여성 보컬"},
+        {emoji:"💕", en:"Romantic Female", ko:"로맨틱 여성 보컬"},
+        {emoji:"🗣️", en:"Husky Male", ko:"허스키 남성 보컬"},
+        {emoji:"👦", en:"Boy Vocal", ko:"소년 보컬"},
+        {emoji:"😊", en:"Bright Girl Vocal", ko:"밝은 소녀 보컬"},
+        {emoji:"🔥", en:"Passionate Male", ko:"열정적인 남성 보컬"},
+        {emoji:"🎵", en:"Mixed Chorus", ko:"남녀 코러스 합창"},
+        {emoji:"🤖", en:"Vocoder Effect", ko:"보코더 효과"},
+        {emoji:"😮", en:"Whispering Female", ko:"속삭이는 여성"},
+        {emoji:"🎤", en:"Rap (Female)", ko:"랩 (여성)"},
+        {emoji:"🎤", en:"Rap (Male)", ko:"랩 (남성)"},
+        {emoji:"🎭", en:"Operatic (Male)", ko:"오페라틱 (남성)"},
+        {emoji:"🎭", en:"Operatic (Female)", ko:"오페라틱 (여성)"},
+        {emoji:"🔇", en:"Atmospheric Sound", ko:"공기반 사운드반"},
+        {emoji:"🎶", en:"Instrumental (No Vocals)", ko:"가사없는 연주곡"},
+        {emoji:"🎙️", en:"Deep Bass Male", ko:"저음 베이스 남성"},
+        {emoji:"👼", en:"Angelic Soprano", ko:"천상의 소프라노"},
+        {emoji:"🎧", en:"Auto-Tune Heavy", ko:"오토튠 효과"},
+    ],
+    usage: [
+        {emoji:"📹", en:"YouTube Vlog BGM", ko:"유튜브 브이로그 BGM"},
+        {emoji:"🎮", en:"Game/Stream BGM", ko:"게임 방송 배경음"},
+        {emoji:"📚", en:"Study/Focus", ko:"공부/집중력 향상"},
+        {emoji:"💪", en:"Workout/Fitness", ko:"운동/피트니스"},
+        {emoji:"😴", en:"Sleep/Meditation", ko:"숙면/명상"},
+        {emoji:"☕", en:"Cafe Ambiance", ko:"카페 분위기"},
+        {emoji:"📱", en:"Short-form/TikTok", ko:"감성 쇼츠/틱톡"},
+        {emoji:"⛪", en:"Church/Worship", ko:"교회 예배/묵상"},
+        {emoji:"🎬", en:"Film/Drama OST", ko:"영화/드라마 OST"},
+        {emoji:"📻", en:"Podcast Intro/Outro", ko:"팟캐스트 인트로/아웃트로"},
+        {emoji:"💍", en:"Wedding", ko:"웨딩/결혼식"},
+        {emoji:"🎂", en:"Birthday/Celebration", ko:"생일/축하"},
+        {emoji:"🏢", en:"Corporate/Presentation", ko:"기업/프레젠테이션"},
+        {emoji:"🧘", en:"Yoga/Spa", ko:"요가/스파"},
+    ],
+    instrument: [
+        {emoji:"🎹", en:"Grand Piano", ko:"그랜드 피아노"},
+        {emoji:"🎸", en:"Acoustic Guitar", ko:"어쿠스틱 기타"},
+        {emoji:"⚡", en:"Electric Guitar", ko:"일렉 기타"},
+        {emoji:"🎵", en:"Organ", ko:"오르골"},
+        {emoji:"🎷", en:"Saxophone", ko:"색소폰"},
+        {emoji:"🎻", en:"Violin", ko:"바이올린"},
+        {emoji:"🎻", en:"Cello", ko:"첼로"},
+        {emoji:"🔔", en:"Singing Bowl", ko:"싱잉볼"},
+        {emoji:"📱", en:"Synthesizer", ko:"신디사이저"},
+        {emoji:"🥁", en:"Drums", ko:"드럼"},
+        {emoji:"🎺", en:"Trumpet", ko:"트럼펫"},
+        {emoji:"🪕", en:"Ukulele", ko:"우쿨렐레"},
+        {emoji:"🎸", en:"Bass Guitar", ko:"베이스 기타"},
+        {emoji:"🪗", en:"Accordion", ko:"아코디언"},
+        {emoji:"🎵", en:"Harp", ko:"하프"},
+        {emoji:"🪈", en:"Flute", ko:"플룻"},
+        {emoji:"🥢", en:"Gayageum (Korean)", ko:"가야금"},
+        {emoji:"🎋", en:"Bamboo Flute", ko:"대금"},
+        {emoji:"🪘", en:"Tabla/Percussion", ko:"타블라/퍼커션"},
+        {emoji:"🔔", en:"Marimba", ko:"마림바"},
+    ],
+    bpm: [
+        {emoji:"😴", en:"Ultra Slow (40-50 BPM)", ko:"초저속 (40-50 BPM)", val:"40-50 BPM"},
+        {emoji:"🌙", en:"Very Slow (50-70 BPM)", ko:"매우 느림 (50-70 BPM)", val:"50-70 BPM"},
+        {emoji:"🐢", en:"Slow (70-90 BPM)", ko:"느림 (70-90 BPM)", val:"70-90 BPM"},
+        {emoji:"🎵", en:"Normal (90-110 BPM)", ko:"보통 (90-110 BPM)", val:"90-110 BPM"},
+        {emoji:"😊", en:"Slightly Fast (110-130 BPM)", ko:"약간 빠름 (110-130 BPM)", val:"110-130 BPM"},
+        {emoji:"⭐", en:"Fast (130-150 BPM)", ko:"빠름 (130-150 BPM)", val:"130-150 BPM"},
+        {emoji:"💪", en:"Very Fast (150-170 BPM)", ko:"매우 빠름 (150-170 BPM)", val:"150-170 BPM"},
+        {emoji:"⚡", en:"Ultra Fast (170+ BPM)", ko:"초고속 (170+ BPM)", val:"170+ BPM"},
+    ],
+    structure: [
+        {emoji:"🔄", en:"Verse-Chorus-Verse-Chorus", ko:"버스-코러스-버스-코러스"},
+        {emoji:"📈", en:"Build-up → Drop", ko:"빌드업 → 드롭"},
+        {emoji:"🌊", en:"Ambient Flow (No Structure)", ko:"앰비언트 흐름 (구조 없음)"},
+        {emoji:"🔁", en:"Loop-based", ko:"루프 기반"},
+        {emoji:"🎭", en:"Intro-Verse-Chorus-Bridge-Outro", ko:"인트로-벌스-코러스-브릿지-아웃트로"},
+        {emoji:"📖", en:"Storytelling (Progressive)", ko:"스토리텔링 (점진적 전개)"},
+        {emoji:"🎬", en:"Cinematic Build", ko:"시네마틱 빌드"},
+        {emoji:"🔀", en:"Free-form/Experimental", ko:"자유형/실험적"},
+    ],
+    age: [
+        {emoji:"👶", en:"Toddler (0-7)", ko:"유아 (0-7세)"},
+        {emoji:"📱", en:"Teens (10s)", ko:"10대 (청소년)"},
+        {emoji:"🎓", en:"20s (Youth)", ko:"20대 (청춘)"},
+        {emoji:"💼", en:"30-40s (Working)", ko:"30-40대 (직장인/부모)"},
+        {emoji:"🧓", en:"50-60s (Senior)", ko:"50-60대 (시니어)"},
+        {emoji:"🌍", en:"All Ages", ko:"전 연령대"},
+    ],
+    lyricsLang: [
+        {emoji:"🇰🇷", en:"Korean", ko:"한국어"},
+        {emoji:"🇺🇸", en:"English", ko:"영어"},
+        {emoji:"🇯🇵", en:"Japanese", ko:"일본어"},
+        {emoji:"🇨🇳", en:"Chinese", ko:"중국어"},
+        {emoji:"🇪🇸", en:"Spanish", ko:"스페인어"},
+        {emoji:"🇫🇷", en:"French", ko:"프랑스어"},
+        {emoji:"🇩🇪", en:"German", ko:"독일어"},
+        {emoji:"🇵🇹", en:"Portuguese", ko:"포르투갈어"},
+        {emoji:"🌐", en:"Korean+English Mix", ko:"한국어+영어 섞어서"},
+        {emoji:"🎵", en:"Instrumental (No Lyrics)", ko:"가사없음 (연주곡)"},
+    ],
+    theme: [
+        {emoji:"💕", en:"First Love", ko:"첫사랑"},
+        {emoji:"👶", en:"Lullaby", ko:"자장가"},
+        {emoji:"🌅", en:"Dawn Reflection", ko:"새벽 묵상"},
+        {emoji:"💔", en:"Pain of Parting", ko:"이별의 아픔"},
+        {emoji:"💛", en:"Reunion", ko:"재회"},
+        {emoji:"😍", en:"Crush", ko:"짝사랑"},
+        {emoji:"💪", en:"Self-Love", ko:"자기 사랑"},
+        {emoji:"🔥", en:"Courage", ko:"용기"},
+        {emoji:"✨", en:"Growth", ko:"갓생"},
+        {emoji:"👤", en:"Subjective Self", ko:"주체적 나"},
+        {emoji:"🎯", en:"Overcoming Failure", ko:"실패와 극복"},
+        {emoji:"💎", en:"Regaining Confidence", ko:"자신감 회복"},
+        {emoji:"🏠", en:"Nostalgia", ko:"향수"},
+        {emoji:"🌧️", en:"Rainy Day", ko:"비 오는 날"},
+        {emoji:"✈️", en:"Travel", ko:"여행"},
+        {emoji:"🙏", en:"Gratitude & Prayer", ko:"감사와 기도"},
+        {emoji:"🎶", en:"Instrumental", ko:"가사없는(연주곡)"},
+        {emoji:"🎄", en:"Christmas", ko:"크리스마스"},
+        {emoji:"🌸", en:"Spring/Cherry Blossom", ko:"봄/벚꽃"},
+        {emoji:"🌊", en:"Summer/Ocean", ko:"여름/바다"},
+        {emoji:"🍂", en:"Autumn Leaves", ko:"가을 단풍"},
+        {emoji:"❄️", en:"Winter Night", ko:"겨울 밤"},
+        {emoji:"🌃", en:"City Night", ko:"도시의 밤"},
+        {emoji:"🏃", en:"Freedom/Liberation", ko:"자유/해방"},
+    ]
+};
+
+// =========== State ===========
+const state = {
+    genre: [], subgenre: [], mood: [], vocal: [], usage: [],
+    instrument: [], bpm: [], structure: [], age: [], lyricsLang: [], theme: []
+};
+
+// =========== Render Chips ===========
+function renderChips(containerId, dataKey, multiSelect = true) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    DATA[dataKey].forEach((item, i) => {
+        const chip = document.createElement('button');
+        chip.className = 'chip';
+        const label = currentLang === 'en' ? item.en : (item.ko || item.en);
+        chip.innerHTML = `<span class="emoji">${item.emoji}</span>${label}`;
+        chip.onclick = () => {
+            const val = item.en;
+            if (multiSelect) {
+                const idx = state[dataKey].indexOf(val);
+                if (idx >= 0) { state[dataKey].splice(idx, 1); chip.classList.remove('selected'); }
+                else { state[dataKey].push(val); chip.classList.add('selected'); }
+            } else {
+                state[dataKey] = state[dataKey][0] === val ? [] : [val];
+                container.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+                if (state[dataKey].length) chip.classList.add('selected');
+            }
+            updatePreview();
+        };
+        if (state[dataKey].includes(item.en)) chip.classList.add('selected');
+        container.appendChild(chip);
+    });
+}
+
+function renderAllChips() {
+    renderChips('genreChips', 'genre');
+    renderChips('subgenreChips', 'subgenre');
+    renderChips('moodChips', 'mood');
+    renderChips('vocalChips', 'vocal');
+    renderChips('usageChips', 'usage');
+    renderChips('instrumentChips', 'instrument');
+    renderChips('bpmChips', 'bpm', false);
+    renderChips('structureChips', 'structure', false);
+    renderChips('ageChips', 'age', false);
+    renderChips('lyricsLangChips', 'lyricsLang', false);
+    renderChips('themeChips', 'theme');
+}
+
+// =========== Preview ===========
+function buildPreviewText() {
+    const parts = [];
+    const add = (label, arr, customId) => {
+        const custom = document.getElementById(customId)?.value?.trim();
+        const vals = [...arr];
+        if (custom) vals.push(custom);
+        if (vals.length) parts.push(`[${label}] ${vals.join(', ')}`);
+    };
+    add('Genre', state.genre, 'genreCustom');
+    add('Sub-genre', state.subgenre, 'subgenreCustom');
+    add('Mood', state.mood, 'moodCustom');
+    add('Vocal', state.vocal, 'vocalCustom');
+    add('Usage', state.usage, 'usageCustom');
+    add('Instruments', state.instrument, 'instrumentCustom');
+    add('BPM', state.bpm, 'bpmCustom');
+    add('Structure', state.structure, 'structureCustom');
+    add('Target Age', state.age, 'ageCustom');
+    add('Lyrics Language', state.lyricsLang, 'lyricsLangCustom');
+    add('Theme', state.theme, 'themeCustom');
+    const ref = document.getElementById('refCustom')?.value?.trim();
+    if (ref) parts.push(`[Reference] ${ref}`);
+    return parts.join('\n');
+}
+
+function updatePreview() {
+    const text = buildPreviewText();
+    const el = document.getElementById('previewContent');
+    el.textContent = text || t('previewEmpty');
+}
+
+// Attach input listeners for real-time preview
+document.querySelectorAll('.custom-input').forEach(input => {
+    input.addEventListener('input', updatePreview);
+});
+
+// =========== API ===========
+function saveApiKey() {
+    const key = document.getElementById('apiKey').value.trim();
+    if (key) {
+        localStorage.setItem('suno_gemini_key', key);
+        document.getElementById('apiStatus').textContent = t('apiSaved');
+    }
+}
+
+function loadApiKey() {
+    const key = localStorage.getItem('suno_gemini_key');
+    if (key) {
+        document.getElementById('apiKey').value = key;
+        document.getElementById('apiStatus').textContent = t('apiSaved');
+    }
+}
+
+// =========== Generate with Gemini ===========
+async function generatePrompts() {
+    const apiKey = localStorage.getItem('suno_gemini_key');
+    if (!apiKey) { showToast(t('noApiKey')); return; }
+
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span>${t('generating')}`;
+
+    const selections = buildPreviewText();
+    const prompt = `You are an expert Suno AI music prompt engineer. Based on the following user selections, generate 3 different high-quality Suno AI prompts. Each prompt should be optimized for Suno AI's music generation system.
+
+User Selections:
+${selections}
+
+Requirements:
+1. Generate exactly 3 different prompt variations
+2. Each prompt should be in English (Suno works best with English prompts)
+3. Each prompt should include: style of music, mood, instruments, tempo, vocal style, and any special production notes
+4. Make prompts specific and detailed for best Suno AI results
+5. Include Suno-specific tags and formatting where appropriate
+6. If lyrics theme is provided, include a brief lyrics direction
+
+Format your response EXACTLY like this (use these exact markers):
+===PROMPT 1===
+[Title: descriptive name]
+[Style/Tags prompt for Suno]
+[Lyrics direction if applicable]
+===PROMPT 2===
+[Title: descriptive name]
+[Style/Tags prompt for Suno]
+[Lyrics direction if applicable]
+===PROMPT 3===
+[Title: descriptive name]
+[Style/Tags prompt for Suno]
+[Lyrics direction if applicable]`;
+
+    try {
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.9, maxOutputTokens: 2048 }
+            })
+        });
+
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const text = data.candidates[0].content.parts[0].text;
+        displayResults(text);
+    } catch (err) {
+        showToast('Error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `🎵 <span data-i18n="generateBtn">${t('generateBtn')}</span>`;
+    }
+}
+
+let lastResults = [];
+
+function displayResults(text) {
+    const overlay = document.getElementById('resultOverlay');
+    const content = document.getElementById('resultContent');
+    document.getElementById('resultTitle').textContent = t('resultTitle');
+
+    // Parse prompts
+    const prompts = text.split(/===PROMPT \d+===/).filter(p => p.trim());
+    lastResults = prompts;
+
+    content.innerHTML = prompts.map((p, i) => `
+        <div class="result-prompt-item">
+            <h4>Prompt ${i + 1}</h4>
+            <pre>${p.trim()}</pre>
+            <button class="copy-btn" onclick="copyText(this.parentElement.querySelector('pre').textContent)" style="margin-top:8px;">📋 ${t('copy')}</button>
+        </div>
+    `).join('');
+
+    overlay.classList.add('show');
+}
+
+function closeResult() {
+    document.getElementById('resultOverlay').classList.remove('show');
+}
+
+function copyAllResults() {
+    const text = lastResults.map((p, i) => `=== Prompt ${i+1} ===\n${p.trim()}`).join('\n\n');
+    copyText(text);
+}
+
+function saveAllResults() {
+    lastResults.forEach((p, i) => {
+        saveToHistory({
+            prompt: p.trim(),
+            selections: buildPreviewText(),
+            date: new Date().toISOString()
+        });
+    });
+    showToast(t('allSaved'));
+}
+
+// =========== Clipboard ===========
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => showToast(t('copied')));
+}
+
+function copyPreview() {
+    const text = document.getElementById('previewContent').textContent;
+    copyText(text);
+}
+
+function saveCurrentPreview() {
+    const text = buildPreviewText();
+    if (!text) return;
+    saveToHistory({
+        prompt: text,
+        selections: text,
+        date: new Date().toISOString()
+    });
+    showToast(t('saved'));
+}
+
+// =========== History ===========
+function getHistory() {
+    return JSON.parse(localStorage.getItem('suno_history') || '[]');
+}
+
+function saveToHistory(item) {
+    const hist = getHistory();
+    hist.unshift(item);
+    if (hist.length > 50) hist.pop();
+    localStorage.setItem('suno_history', JSON.stringify(hist));
+    renderHistory();
+}
+
+function deleteHistoryItem(idx) {
+    const hist = getHistory();
+    hist.splice(idx, 1);
+    localStorage.setItem('suno_history', JSON.stringify(hist));
+    renderHistory();
+}
+
+function clearHistory() {
+    if (confirm(t('confirmClear'))) {
+        localStorage.removeItem('suno_history');
+        renderHistory();
+    }
+}
+
+function renderHistory() {
+    const list = document.getElementById('historyList');
+    const hist = getHistory();
+    if (!hist.length) {
+        list.innerHTML = `<div class="empty-history">${t('emptyHistory')}</div>`;
+        return;
+    }
+    list.innerHTML = hist.map((item, i) => {
+        const d = new Date(item.date);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        return `
+        <div class="history-item">
+            <div class="history-meta">
+                <span class="history-date">${dateStr}</span>
+            </div>
+            <div class="history-prompt">${escapeHtml(item.prompt)}</div>
+            <div class="history-actions">
+                <button class="history-btn" onclick="copyText(getHistory()[${i}].prompt)">📋 ${t('copy')}</button>
+                <button class="history-btn delete" onclick="deleteHistoryItem(${i})">🗑️</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+// =========== Tabs ===========
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.getElementById('musicTab').classList.toggle('active', tab === 'music');
+    document.getElementById('historyTab').classList.toggle('active', tab === 'history');
+    if (tab === 'history') renderHistory();
+}
+
+// =========== Toast ===========
+function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// =========== Init ===========
+function init() {
+    const savedLang = localStorage.getItem('suno_lang') || 'ko';
+    currentLang = savedLang;
+    renderAllChips();
+    setLang(savedLang);
+    loadApiKey();
+    renderHistory();
+    updatePreview();
+}
+
+init();
+</script>
+
+</body>
 </html>
